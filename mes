@@ -1,0 +1,437 @@
+1 
+AREA Multiply, CODE, READONLY
+ENTRY
+LDR R0, =NUM ; load address of multiplicand
+LDRH R1, [R0] ; load First number
+LDRH R2, [R0,#2] ; load Second number
+MUL R3, R1, R2 ; R3 = R1 x R2
+STOP B STOP ; all done
+NUM DCW 0X1222,0X1133 ; Declaration of no’s to
+be multiply
+ END
+
+2
+AREA ADD1TO10, CODE, READONLY
+ENTRY
+MOV R1,#10 ;length of array
+LDR R2,=ARRAY ;Load the starting address of the array
+MOV R4,#0 ;Initial sum
+NEXT LDR R3,[R2],#4 ;Load first integer of the array in R3
+ ADD R4,R4,R3 ;R4=sum of integers
+SUBS R1,R1,#1
+BNE NEXT ;repeat until R1=0STOP
+B STOP
+ARRAY DCD 1,2,3,4,5,6,7,8,9,10
+END
+
+3
+AREA Factorial, CODE, READONLY
+ENTRY
+MOV R0,#4 ; load the number in R0
+CMP R0,#0 ; check if the number is 0
+BEQ ANS ;if number is 0, go to label ANS
+CMP R0,#1 ; check if the number is 1
+BEQ ANS ;if number is 1, go to label ANS
+MOV R1,R0 ; Copy the number in R1
+UP SUBS R1,R1,#1 ; decrement the value in R1 till 0
+BEQ STOP ; if yes store factorial value
+MUL R2,R1,R0 ; if not fact= R0 x R1
+MOV R0,R2 ; move fact value
+B UP ;repeat until R1 is 0
+ANS MOV R0,#1
+STOP B STOP ; Stop
+
+4
+AREA ADDITION, CODE, READONLY
+ENTRY
+MOV R5,#6 ;length of array
+MOV R0,#0 ;initial sum
+LDR R1,=VALUE1 ;starting address of the array
+ LOOP LDRH R2,[R1],#2 ;R2=first element of array
+ADD R0,R0,R2 ;add first element with initial sum
+SUBS R5,R5,#1
+BNE LOOP ;repeat addition until r5=0
+LDR R4,=RESULT
+STR R0,[R4] ;store the result in memory
+ STOP B STOP
+VALUE1 DCW 0X1111,0X2222,0X3333,0X4444,0X3333,0X5555
+ AREA DATA2,DATA,READWRITE
+RESULT DCD 0X0
+ END
+
+
+5
+AREA square, CODE, READONLY
+ENTRY
+MOV R1,#0X3 ; load the number to be squared
+LDR R0,=LOOKUP ; load the starting address of the lookup table
+MOV R1,R1,LSL#0X2 ; offset of value to be squared
+ADD R0,R0,R1 ; points to mem where square of the given no is sorted
+LDR R3,[R0] ; load the squared value from look-up table
+STOP B STOP
+LOOKUP DCD 0X0,0X1,0x4,0x9,0x10,0x19,0x24,0x31,0x40,0x51,0x64
+; look-up table
+ END
+
+6
+AREA LARGE,CODE,READONLYENTRY
+MOV R5,#5 ;R5 = length of array - 1
+LDR R1,=ARRAY ;load starting addressing of array
+LDR R2,[R1],#4 ;load 1st element of array
+LOOP LDR R4,[R1],#4 ;load next element of array
+ CMP R2,R4 ;compare 1st and 2nd element
+ BHI NEXT
+MOV R2,R4 ;R2=largest value
+NEXT SUBS R5,R5,#1 ;decrement the counter after every comparison
+ BNE LOOP ; repeat until R5=0
+STOP B STOP
+ARRAY DCD 0X23,0X45,0X65,0X76,0X12,0X99
+ END
+
+7
+AREA Ascending, CODE, READONLY ENTRY
+LOOP0
+NXTPAS
+NXTCMP
+NOSWP
+MOV R8,#4
+LDR R2,=SVALUE
+LDR R3,=DVALUE
+LDR R1,[R2],#4
+STR R1,[R3],#4
+SUBS R8,R8,#1
+CMP R8,#0
+BNE LOOP0
+MOV R7,#3
+MOV R5,R7
+LDR R1,=DVALUE
+LDR R2,[R1],#4
+LDR R3,[R1]
+CMP R2,R3
+BLT NOSWP
+STR R2,[R1],#-4
+STR R3,[R1]
+ADD R1,R1,#4
+SUBS R5,R5,#1
+;Length of the array
+;Starting address of the source array
+;Starting address of the destination array
+;Loop0 copies all the elements of source ary to dest ary
+;R7=Number of pass
+;R5=Number of comparisons
+;Loads the starting address of dest array in R1
+;Compares first and second element of the array
+;If first element is smaller, no swapping
+;Swaps the elements of the array
+;Decrement comparison counter by 1 till 0
+BNE NXTCMP
+STOP
+SUBS R7,R7,#1
+BNE NXTPAS
+B STOP
+;Decrement pass counter by 1 till 0
+SVALUE DCD 0X44,0X11,0X33,0X22
+AREA DATA1,DATA,READWRITE DVALUEDCD
+0X00
+END
+
+8
+AREA ONEZERO, CODE, READONLY ENTRY
+MOV R2,#0 ;Counter for ones
+MOV R3,#0 ;Counter for zeros
+MOV R7,#2 ;Counter of 2 numbers
+LDR R6,=LOOKUP ;Load starting address of numbers
+LOOP MOV R1,#32 ;Number of bits in each number
+LDR R0,[R6] ;Load 1st number to r0
+NEXTBIT MOVS R0,R0,ROR #1 ;Check the bit is one or zero
+BHI ONES ; IF CF=1 increment r2 else increment r3
+ZEROS ADD R3,R3,#1 ;R3 stores count of 0s
+B REPEAT
+ONES ADD R2,R2,#1 ;R2 stores count of 1s
+REPEAT SUBS R1,R1,#1 ; Decrement the bit counter by 1 till 0
+BNE NEXTBIT ; Repeat until r1=0
+ADD R6,R6,#4 ; Load r6=address of next number
+SUBS R7,R7,#1 ; Decrement the number counter by 1 till 0
+BNE LOOP
+STOP B STOP
+LOOKUP DCD 0X5,0X7 ; Memory address of lookup
+table END
+
+
+9
+#include <stdio.h>
+#include <LPC214x.H> /* LPC21xx definitions */
+void uart0_putc(char c);
+void delay_ms(int count)
+{
+int j=0,i=0;
+for(j=0;j<count;j++)
+{
+/* At 60Mhz, the below loop introduces delay of 10 us */
+for(i=0;i<35;i++);
+}
+}
+void uart0_init()
+{
+/* initialize the UART serial interface */
+PINSEL0 = 0x00000005; /* Enable RxD0 and TxD0 */
+U0LCR = 0x83; /* 8 bits, no Parity, 1 Stop bit */
+U0DLL = 97; /* 9600 Baud Rate @ 15MHz VPB Clock */
+U0LCR = 0x03; /* DLAB = 0 */
+}
+void uart0_puts(char *p)
+{
+while(*p) // Point to character
+{
+uart0_putc(*p++); // Send character then point to next character
+}
+}
+void uart0_putc(char c)
+{
+while(!(U0LSR & 0x20)); // Wait until UART0 ready to send character
+U0THR = c; // Send character
+}
+/* main program */
+int main (void)
+{ /* execution starts here */
+uart0_init(); // Initialize UART0
+delay_ms(100000);
+uart0_puts("*****************************\n\r");
+while (1)
+{ /* An embedded program does not stop */
+uart0_puts ("Hello World\n\r"); // Transffer data to PC through Serial
+delay_ms(100000);
+}
+}
+
+10
+Program:
+led.c
+/*********************************************************************
+** File Name : led.c
+**
+** Pin Numbers : P1.17 to P1.24 **
+*********************************************************************/
+/* LPC2148 Header File */
+#include <LPC214X.H>
+#include "led.h"
+void LED_Init(void)
+{
+IODIR1 |= LED_ALL; // Declared as output pin - P1.17 to P1.24
+IOCLR1 |= LED_ALL; // Clear all LED's
+}
+/********************************************************************
+** End of File **
+********************************************************************/
+**********************************
+led.h
+#ifndef _LED_H
+#define _LED_H
+/* Macro Definitions*/
+#define LED1 (1 << 17)
+#define LED2 (1 << 18)
+#define LED3 (1 << 19)
+#define LED4 (1 << 20)
+#define LED5 (1 << 21)
+#define LED6 (1 << 22)
+#define LED7 (1 << 23)
+#define LED8 (1 << 24)
+#define LED_ALL LED1| LED2 | LED3 | LED4 | LED5 | LED6 | LED7 | LED8
+void LED_Init(void);
+#endif
+
+11
+main.c
+#include "lpc21xx.h"
+#include "motor.h"
+int main(void)
+{
+init_motor();
+while(1)
+{
+rotate_motor_clock_wise();
+rotate_motor_anticlock_wise();
+}
+}
+**********************************************
+motor.c
+#include "LPC214x.H"
+#include "motor.h"
+#define PIN1 (1<<27)
+#define PIN2 (1<<28)
+#define PIN3 (1<<29)
+#define PIN4 (1<<30)
+void init_motor()
+{
+IODIR1 = (PIN1|PIN2|PIN3|PIN4);
+}
+void rotate_motor_anticlock_wise()
+{
+unsigned char i;
+for(i=0;i<25;i++)
+{
+IOCLR1 = (PIN1|PIN2|PIN4);
+IOSET1 = PIN3;
+delay();
+IOCLR1 = (PIN3|PIN2|PIN4);
+IOSET1 = PIN1;
+delay();
+IOCLR1 = (PIN1|PIN3|PIN2);
+IOSET1 = PIN4;
+delay();
+IOCLR1 = (PIN1|PIN3|PIN4);
+IOSET1 = PIN2;
+delay();
+}
+}
+void rotate_motor_clock_wise()
+{
+unsigned char i;
+for(i=0;i<25;i++)
+{
+IOCLR1 = (PIN2|PIN3|PIN4);
+IOSET1 = PIN1;
+delay();
+IOCLR1 = (PIN1|PIN2|PIN4);
+IOSET1 = PIN3;
+delay();
+IOCLR1 = (PIN1|PIN3|PIN4);
+IOSET1 = PIN2;
+delay();
+IOCLR1 = (PIN1|PIN2|PIN3);
+IOSET1 = PIN4;
+delay();
+}
+}
+void delay()
+{
+int i,j;
+for(i=0;i<1000;i++)
+{
+for(j=0;j<500;j++)
+{
+continue;
+}
+}
+}
+
+13
+Program:
+sin_tri_square.c
+#include <lpc214x.h>
+#include <stdint.h>
+#include<math.h>
+#define ANGLE_STEP_RATE 1.8 //i.e the Angle Resolution
+#define PI 3.14159
+char sineLookupTable[200];
+int count=0;
+void delay_ms(uint16_t j)
+{
+uint16_t x,i;
+for(i=0;i<j;i++)
+{
+//for(x=0; x<6000; x++); /* loop to generate 1 milisecond delay with Cclk = 60MHz */
+for(x=0; x<3000; x++);
+}
+}
+void computeSineLookupTable(void)
+{
+float angle;
+int i;
+for(i=0; i<200; i++)
+{
+to radians
+}
+angle = ( ((float)i) * ANGLE_STEP_RATE );
+sineLookupTable[i] = rint(100 + 99* sin( angle * (PI/180) )); //converting angle
+}
+int main (void)
+{
+uint16_t value;
+PINSEL1 |= 0x00080000; /* P0.25 as DAC output */ //initialize dac
+//IO0DIR = ( IO0DIR & 0xFFFFF0FF ); /* Input pins for switch. P0.8 sine, P0.9
+triangular, P0.10 sawtooth, P0.11 square */
+IO0DIR &= ~( 1<<30); //P0.30 triangle sw
+IO1DIR &= ~( 1<<25); //P1.25 square sw
+computeSineLookupTable(); //Compute Sine Lookup Table with 200 Divisions
+while(1)
+{
+if ( !(IO0PIN & (1<<30)) ) /* If switch for sawtooth wave is pressed */ //p0.30
+{
+value = 0;
+while ( value != 1023 )
+{
+DACR = ( (1<<16) | (value<<6) );
+value++;
+}
+}
+else if ( !(IO1PIN & (1<<25)) ) /* If switch for square wave is pressed */
+{
+}
+value =1023; // 200;
+DACR = ( (1<<16) | (value<<6) );
+delay_ms(1);
+value = 0;
+DACR = ( (1<<16) | (value<<6) );
+delay_ms(1);
+else /* If no switch is pressed, 3.3V DC */ //degfault square
+{
+value = sineLookupTable[count]; //current amplitude;
+count++;
+if(count>199) count = 0; //count>199
+DACR = ( (1<<16) | (value<<6) );
+}
+}
+}
+
+15
+Program :
+main.c
+#include <stdio.h>
+#include <LPC214x.h>
+int volatile EINT1 = 0;
+int volatile EINT2 = 0;
+void ExtInt_Serve1(void) irq;
+void ExtInt_Init1(void);
+void DelayMs(unsigned int count);
+void ExtInt_Serve1(void) irq
+{
+++EINT1;
+EXTINT |= 2;
+VICVectAddr = 1;// vecter addres reg 1//
+IO1SET |= (1<<24); // Turn On LED
+void main(void)
+{
+IO1CLR |= (1<<25); // Turn Off LED
+}
+//Initialize Interrupt 1 ExtInt_Init1();
+ExtInt_Init1();
+IO1DIR |= (1<<24);
+while(1)
+{
+DelayMs(500);
+DelayMs(500);
+}
+}
+void ExtInt_Init1(void)
+{
+EXTMODE |= 2;
+//Edge sensitive mode on EINT1
+EXTPOLAR = 0;
+//Falling Edge Sensitive
+PINSEL0 |= 0x20000000;
+//Enable EINT2 on P0.14
+VICVectCntl0 = 0x20 | 15; //P0_14(ISP) to vss
+//15 is index of EINT1
+VICVectAddr0 = (unsigned long) ExtInt_Serve1;
+VICIntEnable |= 1<<15; //led 8 P1.24
+//Enable EINT1
+}
+void DelayMs(unsigned int count)
+{
+unsigned int i,j;
+for(i=0;i<count;i++) {
+for(j=0;j<1000;j++);
+}
+}
+
